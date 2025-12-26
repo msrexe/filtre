@@ -1,0 +1,61 @@
+{
+  "name": "filtre",
+  "productName": "filtre",
+  "description": "Minimalist Focus Engine for macOS",
+  "version": "1.0.0",
+  "author": "msrexe",
+  "license": "MIT",
+  "type": "module",
+  "main": "electron-main.cjs",
+  "homepage": "https://github.com/msrexe/filtre",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/msrexe/filtre.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.cjs",
+    "start": "concurrently \"npm run server\" \"npm run dev\"",
+    "widget": "concurrently \"npm run dev\" \"electron .\"",
+    "build": "vite build",
+    "dist": "vite build && electron-builder",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.msrexe.filtre",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg",
+      "icon": "public/foco-iconTemplate-final.png"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.cjs",
+      "server.cjs",
+      "public/**/*",
+      "package.json"
+    ]
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.7",
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
+}
