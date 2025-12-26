@@ -9,7 +9,9 @@ coverage/
 # Production / Build
 dist/
 dist-electron/
+dist-client/
 release/
+build/
 out/
 *.dmg
 *.zip

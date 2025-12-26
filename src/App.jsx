@@ -9,7 +9,8 @@ import {
   Activity,
   Shield,
   Trash2,
-  ChevronLeft
+  ChevronLeft,
+  Power
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:3001/api';
@@ -80,8 +81,15 @@ function App() {
         body: JSON.stringify({ profile: targetProfile, durationMinutes: duration })
       });
       const data = await res.json();
-      setSession({ ...data, remainingSeconds: duration * 60 });
-    } catch (e) { console.error(e); }
+      if (res.ok) {
+        setSession({ ...data, remainingSeconds: duration * 60 });
+      } else {
+        alert(`Error: ${data.error || 'Failed to start session. Check permissions.'}`);
+      }
+    } catch (e) { 
+      console.error(e); 
+      alert('Could not connect to backend server.');
+    }
   };
 
   const stopSession = async (e) => {
@@ -260,7 +268,7 @@ function App() {
                         </div>
                     ))}
                 </div>
-                <button className="btn" style={{ width: '100%', marginTop: '12px', background: 'var(--accent-color)', color: 'white' }} onClick={() => handleSaveProfile(editingProfile.name, editingProfile.sites)}>Save</button>
+                <button className="btn" style={{ width: '100%', marginTop: '12px', background: '#000000', color: '#ffffff', justifyContent: 'center' }} onClick={() => handleSaveProfile(editingProfile.name, editingProfile.sites)}>Save</button>
             </div>
           )}
 
@@ -282,6 +290,17 @@ function App() {
                       </a>
                     </div>
                 </div>
+                <button 
+                  className="btn" 
+                  onClick={async () => {
+                    if (window.confirm('Quit filtre?')) {
+                      await fetch(`${API_BASE}/quit`, { method: 'POST' });
+                    }
+                  }}
+                  style={{ marginTop: '10px', background: 'rgba(255, 0, 0, 0.1)', color: '#ff4d4d', border: '1px solid rgba(255, 0, 0, 0.2)', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <Power size={14} /> Quit App
+                </button>
             </div>
           )}
         </div>

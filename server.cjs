@@ -10,18 +10,16 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-const PROFILES_PATH = path.join(__dirname, 'profiles.json');
-const SESSION_PATH = path.join(__dirname, 'session.json');
-
-// Default profiles
-const defaultProfiles = {
-  "Low Focus": ["facebook.com", "instagram.com", "twitter.com", "x.com"],
-  "Hard Focus": ["facebook.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "netflix.com", "reddit.com", "twitch.tv"],
-  "Social Only": ["facebook.com", "instagram.com", "tiktok.com", "snapchat.com"]
-};
+const PROFILES_PATH = process.env.FILTRE_PROFILES_PATH || path.join(__dirname, 'profiles.json');
+const SESSION_PATH = process.env.FILTRE_SESSION_PATH || path.join(__dirname, 'session.json');
 
 // Initialize files if they don't exist
 if (!fs.existsSync(PROFILES_PATH)) {
+  const defaultProfiles = {
+    "Standard": ["facebook.com", "instagram.com", "twitter.com", "x.com", "tiktok.com"],
+    "Deep Work": ["facebook.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "netflix.com", "reddit.com", "twitch.tv", "linkedin.com", "pinterest.com"],
+    "Social Media": ["facebook.com", "instagram.com", "twitter.com", "x.com", "tiktok.com", "snapchat.com", "discord.com"]
+  };
   fs.writeFileSync(PROFILES_PATH, JSON.stringify(defaultProfiles, null, 2));
 }
 
@@ -92,33 +90,62 @@ app.post('/api/session/resume', (req, res) => {
 });
 
 function updateHosts(sites, block, callback) {
-  // Clear existing block-list from hosts
-  const clearCmd = "sed -i '' '/# filtre-blocklist start/,/# filtre-blocklist end/d' /etc/hosts";
+  const tempScriptPath = `/tmp/filtre_update_${Date.now()}.sh`;
   
-  exec(clearCmd, (err) => {
-    if (err) {
-      console.error("Error clearing hosts:", err);
-      return callback(new Error("Permission denied. Run server with sudo."));
-    }
-    
-    if (block && sites.length > 0) {
-      let hostsContent = "\n# filtre-blocklist start\n";
-      sites.forEach(site => {
-        hostsContent += `127.0.0.1 ${site}\n`;
-        hostsContent += `127.0.0.1 www.${site}\n`;
-      });
-      hostsContent += "# filtre-blocklist end\n";
-      fs.appendFileSync('/etc/hosts', hostsContent);
-    }
-    
-    // Flush DNS Cache for macOS to ensure changes take effect immediately
-    const flushDnsCmd = "dscacheutil -flushcache; killall -HUP mDNSResponder";
-    exec(flushDnsCmd, (flushErr) => {
-      if (flushErr) console.error("DNS Flush Error:", flushErr);
-      callback(null);
+  let scriptContent = `#!/bin/bash
+# Remove existing blocklist
+sed -i '' '/# filtre-blocklist start/,/# filtre-blocklist end/d' /etc/hosts
+`;
+
+  if (block && sites.length > 0) {
+    scriptContent += `cat <<EOF >> /etc/hosts
+
+# filtre-blocklist start
+`;
+    sites.forEach(site => {
+      scriptContent += `127.0.0.1 ${site}\n`;
+      scriptContent += `127.0.0.1 www.${site}\n`;
     });
-  });
+    scriptContent += `# filtre-blocklist end
+EOF
+`;
+  }
+
+  try {
+    fs.writeFileSync(tempScriptPath, scriptContent);
+    fs.chmodSync(tempScriptPath, 0o755);
+
+    // Use quoted path for the script to handle spaces and special characters
+    const osaCmd = `osascript -e 'do shell script "sh \\"${tempScriptPath}\\"" with administrator privileges'`;
+    
+    exec(osaCmd, (err) => {
+      // Clean up temp file immediately
+      try { fs.unlinkSync(tempScriptPath); } catch (e) {}
+      
+      if (err) {
+        console.error("OSAScript Permission Error:", err);
+        return callback(new Error("Administrator privileges required to block sites."));
+      }
+      
+      // Flush DNS Cache
+      const flushDnsCmd = "dscacheutil -flushcache; killall -HUP mDNSResponder";
+      exec(flushDnsCmd, (flushErr) => {
+        if (flushErr) console.error("DNS Flush Error:", flushErr);
+        callback(null);
+      });
+    });
+  } catch (e) {
+    console.error("Temp script creation failed:", e);
+    callback(new Error("Failed to initialize update process."));
+  }
 }
+
+app.post('/api/quit', (req, res) => {
+  res.json({ success: true });
+  setTimeout(() => {
+    process.exit(0);
+  }, 500);
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server running at http://localhost:${PORT}`);

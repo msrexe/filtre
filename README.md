@@ -12,7 +12,7 @@
 
 ## 🚀 Installation
 
-### Via Homebrew (Coming Soon)
+### Via Homebrew
 ```bash
 brew install --cask filtre
 ```
@@ -52,6 +52,3 @@ Contributions are welcome! If you'd like to improve **filtre**, please feel free
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
----
-Created with passion by **msrexe**.
