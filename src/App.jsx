@@ -117,6 +117,7 @@ function App() {
   };
 
   const handleSaveProfile = async (name, sites) => {
+    if (!name) return alert('Profile name is required');
     const updated = { ...profiles, [name]: sites };
     try {
       await fetch(`${API_BASE}/profiles`, {
@@ -127,7 +128,9 @@ function App() {
       setProfiles(updated);
       setEditingProfile(null);
       setView('profiles');
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const progress = session.active ? (session.remainingSeconds / (duration * 60)) : 1;
