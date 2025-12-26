@@ -136,7 +136,24 @@ function createTray() {
     const contextMenu = Menu.buildFromTemplate([
       { label: 'Show filtre', click: () => { showWindow(); } },
       { type: 'separator' },
-      { label: 'Quit filtre', role: 'quit' }
+      { 
+        label: 'Quit filtre', 
+        click: () => {
+          console.log('Quit from tray clicked...');
+          // Request the server to clean up and quit
+          const http = require('http');
+          const req = http.request({
+            hostname: 'localhost',
+            port: 3001,
+            path: '/api/quit',
+            method: 'POST'
+          }, (res) => {
+            // Server exit will trigger the 'exit' listener on serverProcess
+          });
+          req.on('error', () => app.quit());
+          req.end();
+        } 
+      }
     ]);
 
     tray.on('click', () => {
