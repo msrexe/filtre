@@ -1,6 +1,14 @@
-# filtre 
+# filtre 💡
 
 **filtre** is a minimalist, professional focus engine for macOS. Designed with a flat aesthetic, it lives in your menu bar and helps you stay in the flow by blocking digital distractions at the system level.
+
+<p align="center">
+  <img src="screenshots/image.png" width="45%" />
+  <img src="screenshots/image-3.png" width="45%" />
+</p>
+<p align="center">
+  <img src="screenshots/image-2.png" width="91%" />
+</p>
 
 ## ⚡ Features
 
